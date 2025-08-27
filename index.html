@@ -17,230 +17,255 @@
 
   <style>
     #map { height: 420px; }
-    .list-scroll { max-height: 320px; overflow: auto; }
     .hover-card:hover { background: #f9fafb; }
     .dark .hover-card:hover { background: #1f2937; }
-    .dark #map { filter: invert(90%) hue-rotate(180deg); } /* quick map dark look */
+    .dark #map { filter: invert(90%) hue-rotate(180deg); }
   </style>
 </head>
 <body class="bg-white text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors">
-  <div class="max-w-5xl mx-auto p-4 space-y-4">
-    <header class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold">Business/Office Pins Map</h1>
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Pins add karo aur list se visit toggle, delete aur feedback handle karo. 👇
-        </p>
-      </div>
-      <button id="darkToggle" class="px-3 py-1 rounded-xl border text-sm">
-        🌙 Dark
-      </button>
-    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-      <div class="md:col-span-4">
-        <label class="block text-sm font-medium">Business/Office Name</label>
-        <input id="nameInput" type="text" placeholder="e.g., Interhaul HQ"
-               class="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring dark:bg-gray-800 dark:border-gray-700"/>
-      </div>
-      <div class="md:col-span-6">
-        <label class="block text-sm font-medium">Location (Address/Area/City)</label>
-        <input id="locationInput" type="text" placeholder="e.g., Chhatarpur, Delhi"
-               class="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring dark:bg-gray-800 dark:border-gray-700"/>
-      </div>
-      <div class="md:col-span-2">
-        <button id="addBtn"
-  class="w-full rounded-xl px-4 py-2 font-semibold shadow
-         bg-black text-white dark:bg-gray-700 dark:text-white hover:opacity-90">
-  Add Pin
-</button>
+<div class="max-w-5xl mx-auto p-4 space-y-4">
 
-      </div>
+  <header class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold">Business/Office Pins Map</h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        Pins add karo aur list se visit toggle, delete aur feedback handle karo. 👇
+      </p>
     </div>
+    <button id="darkToggle" class="px-3 py-1 rounded-xl border text-sm">
+      🌙 Dark
+    </button>
+  </header>
 
-    <div id="map" class="rounded-2xl border shadow"></div>
-
-    <section>
-      <div id="stats" class="flex gap-4 text-sm font-medium mt-2"></div>
-    </section>
-
-    <section class="space-y-2">
-      <div class="flex items-center justify-between">
-        <h2 class="text-lg font-semibold">Pinned Locations</h2>
-        <button id="clearAllBtn" class="text-sm px-3 py-1 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800">
-          Clear All
-        </button>
-      </div>
-      <div id="list" class="list-scroll divide-y rounded-2xl border dark:divide-gray-700 dark:border-gray-700"></div>
-    </section>
+  <!-- Input fields -->
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+    <div class="md:col-span-4">
+      <label class="block text-sm font-medium">Business/Office Name</label>
+      <input id="nameInput" type="text" placeholder="e.g., Interhaul HQ"
+             class="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring dark:bg-gray-800 dark:border-gray-700"/>
+    </div>
+    <div class="md:col-span-6">
+      <label class="block text-sm font-medium">Location (Address/Area/City)</label>
+      <input id="locationInput" type="text" placeholder="e.g., Chhatarpur, Delhi"
+             class="mt-1 w-full rounded-xl border px-3 py-2 focus:outline-none focus:ring dark:bg-gray-800 dark:border-gray-700"/>
+    </div>
+    <div class="md:col-span-2">
+      <button id="addBtn"
+        class="w-full rounded-xl px-4 py-2 font-semibold shadow
+               bg-black text-white dark:bg-gray-700 dark:text-white hover:opacity-90">
+        Add Pin
+      </button>
+    </div>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <!-- Map -->
+  <div id="map" class="rounded-2xl border shadow"></div>
 
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  <!-- Stats + List -->
+  <section class="space-y-2">
+    <!-- Stats bar sticky -->
+    <div id="stats" class="flex gap-4 text-sm font-medium p-2 bg-gray-100 dark:bg-gray-800 rounded-xl shadow sticky top-0 z-10">
+      <!-- Stats will render here -->
+    </div>
 
-    // 🔥 Firebase Config Paste Kar Yahan
-    const firebaseConfig = {
-      apiKey: "AIzaSyCR3hj9MnH7s_8nv07j0nu6aCBLUOz2NXI",
+    <!-- List header -->
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="text-lg font-semibold">Pinned Locations</h2>
+      <button id="clearAllBtn" class="text-sm px-3 py-1 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800">
+        Clear All
+      </button>
+    </div>
+
+    <!-- Scrollable list -->
+    <div id="list" class="max-h-64 overflow-y-auto divide-y rounded-2xl border dark:divide-gray-700 dark:border-gray-700"></div>
+  </section>
+
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyCR3hj9MnH7s_8nv07j0nu6aCBLUOz2NXI",
   authDomain: "mapp-468fa.firebaseapp.com",
   databaseURL: "https://mapp-468fa-default-rtdb.firebaseio.com",
   projectId: "mapp-468fa",
-  storageBucket: "mapp-468fa.firebasestorage.app",
+  storageBucket: "mapp-468fa.appspot.com",
   messagingSenderId: "638138306228",
   appId: "1:638138306228:web:21fba45052c59b605b91e1",
   measurementId: "G-6K4W1C4C3G"
-    };
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const placesRef = ref(db, "places");
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const placesRef = ref(db, "places");
 
-    const map = L.map('map').setView([22.9734, 78.6569], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-    const markerById = new Map();
-    const $ = id => document.getElementById(id);
+const map = L.map('map').setView([22.9734, 78.6569], 5);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-    // ---- Dark mode ----
-    const THEME_KEY = "theme_pref";
-    function applyTheme(theme) {
-      if (theme === "dark") { document.documentElement.classList.add("dark"); $("darkToggle").textContent = "☀️ Light"; }
-      else { document.documentElement.classList.remove("dark"); $("darkToggle").textContent = "🌙 Dark"; }
-    }
-    function loadTheme() {
-      const t = localStorage.getItem(THEME_KEY) || "light";
-      applyTheme(t);
-    }
-    $("darkToggle").addEventListener("click", () => {
-      const current = document.documentElement.classList.contains("dark") ? "dark" : "light";
-      const newTheme = current === "dark" ? "light" : "dark";
-      localStorage.setItem(THEME_KEY, newTheme);
-      applyTheme(newTheme);
-    });
-    loadTheme();
+const markerById = new Map();
+const $ = id => document.getElementById(id);
 
-    function colorFor(p) { return p.visited ? "#16a34a" : "#dc2626"; }
-    function addMarkerForPlace(p) {
-      const m = L.circleMarker([p.lat, p.lng], { radius: 10, color: colorFor(p), weight: 2, fillOpacity: 0.7 })
-                 .addTo(map).bindPopup(`<b>${p.name}</b><br>${p.address}`);
-      markerById.set(p.id, m);
-    }
-    function updateMarkerStyle(p) {
-      const m = markerById.get(p.id);
-      if (m) m.setStyle({ color: colorFor(p) });
-    }
-    function removeMarker(id) {
-      const m = markerById.get(id);
-      if (m) { map.removeLayer(m); markerById.delete(id); }
-    }
-    function fitBoundsIfAny() {
-      if (markerById.size === 0) return;
-      const b = L.latLngBounds(Array.from(markerById.values()).map(m => m.getLatLng()));
-      map.fitBounds(b, { padding: [30, 30] });
-    }
+// ---- Dark mode ----
+const THEME_KEY = "theme_pref";
+function applyTheme(theme) {
+  if (theme === "dark") { document.documentElement.classList.add("dark"); $("darkToggle").textContent = "☀️ Light"; }
+  else { document.documentElement.classList.remove("dark"); $("darkToggle").textContent = "🌙 Dark"; }
+}
+function loadTheme() {
+  const t = localStorage.getItem(THEME_KEY) || "light";
+  applyTheme(t);
+}
+$("darkToggle").addEventListener("click", () => {
+  const current = document.documentElement.classList.contains("dark") ? "dark" : "light";
+  const newTheme = current === "dark" ? "light" : "dark";
+  localStorage.setItem(THEME_KEY, newTheme);
+  applyTheme(newTheme);
+});
+loadTheme();
 
-    function renderStats(total, visited, notVisited) {
-      $('stats').innerHTML = `
-        <div>Total: <span class="font-bold">${total}</span></div>
-        <div class="text-green-500">Visited: <span class="font-bold">${visited}</span></div>
-        <div class="text-red-500">Not Visited: <span class="font-bold">${notVisited}</span></div>
-      `;
-    }
+// ---- Marker functions ----
+function colorFor(p) { return p.visited ? "#16a34a" : "#dc2626"; }
+function addMarkerForPlace(p) {
+  const m = L.circleMarker([p.lat, p.lng], { radius: 10, color: colorFor(p), weight: 2, fillOpacity: 0.7 })
+             .addTo(map).bindPopup(`<b>${p.name}</b><br>${p.address}`);
+  markerById.set(p.id, m);
+}
+function updateMarkerStyle(p) {
+  const m = markerById.get(p.id);
+  if (m) m.setStyle({ color: colorFor(p) });
+}
+function removeMarker(id) {
+  const m = markerById.get(id);
+  if (m) { map.removeLayer(m); markerById.delete(id); }
+}
+function fitBoundsIfAny() {
+  if (markerById.size === 0) return;
+  const b = L.latLngBounds(Array.from(markerById.values()).map(m => m.getLatLng()));
+  map.fitBounds(b, { padding: [30, 30] });
+}
 
-    function renderList(data) {
-      const list = $('list');
-      list.innerHTML = "";
-      const total = Object.keys(data).length;
-      let visited = 0;
-      let notVisited = 0;
+// ---- Stats render ----
+function renderStats(total, visited, notVisited) {
+  const statsEl = $('stats');
+  statsEl.innerHTML = `
+    <div>Total: <span class="font-bold">${total}</span></div>
+    <div class="text-green-500">Visited: <span class="font-bold">${visited}</span></div>
+    <div class="text-red-500">Not Visited: <span class="font-bold">${notVisited}</span></div>
+  `;
+}
 
-      Object.entries(data).forEach(([id, p]) => {
-        if (p.visited) visited++; else notVisited++;
-        addMarkerForPlace({ ...p, id });
+// ---- List render ----
+function renderList(data) {
+  const list = $('list');
 
-        const row = document.createElement('div');
-        row.className = "p-3 hover-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2";
+  let total = Object.keys(data).length;
+  let visited = 0;
+  let notVisited = 0;
 
-        const left = document.createElement('div');
-        left.className = "space-y-0.5";
-        left.innerHTML = `<div class="font-semibold cursor-pointer underline-offset-4 hover:underline">${p.name}</div>
-                          <div class="text-xs text-gray-600 dark:text-gray-400">${p.address}</div>
-                          ${p.feedback ? `<div class="text-xs mt-1"><span class="font-medium">Feedback:</span> ${p.feedback}</div>` : ""}`;
-        left.querySelector("div.font-semibold").addEventListener("click", () => {
-          map.setView([p.lat, p.lng], 16);
-          markerById.get(id)?.openPopup();
-        });
+  Object.entries(data).forEach(([id, p]) => {
+    if (p.visited) visited++; else notVisited++;
+  });
 
-        const right = document.createElement('div');
-        right.className = "flex items-center gap-2";
+  // Render stats **before clearing the list**
+  renderStats(total, visited, notVisited);
 
-        const visitBtn = document.createElement('button');
-       visitBtn.className = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
-        visitBtn.textContent = p.visited ? "Visited ✓" : "Mark Visited";
-        visitBtn.addEventListener('click', () => {
-          update(ref(db, "places/" + id), { visited: !p.visited });
-        });
+  // Clear list & markers
+  list.innerHTML = "";
+  markerById.forEach(m => map.removeLayer(m));
+  markerById.clear();
 
-        const fbBtn = document.createElement('button');
-       fbBtn.className    = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
-        fbBtn.textContent = "Feedback";
-        fbBtn.addEventListener('click', () => {
-          const t = prompt("Feedback:", p.feedback || "");
-          if (t !== null) { update(ref(db, "places/" + id), { feedback: t.trim() }); }
-        });
+  // Add each item + markers
+  Object.entries(data).forEach(([id, p]) => {
+    addMarkerForPlace({ ...p, id });
 
-        const delBtn = document.createElement('button');
-        delBtn.className   = "text-xs rounded-lg border px-3 py-1 text-red-600 dark:border-red-400";
-        delBtn.textContent = "Delete";
-        delBtn.addEventListener('click', () => {
-          if (!confirm(`Delete "${p.name}"?`)) return;
-          remove(ref(db, "places/" + id));
-        });
+    const row = document.createElement('div');
+    row.className = "p-3 hover-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2";
 
-        right.append(visitBtn, fbBtn, delBtn);
-        row.append(left, right);
-        list.appendChild(row);
-      });
-
-      renderStats(total, visited, notVisited);
-      fitBoundsIfAny();
-    }
-
-    async function addPlace(name, query) {
-      if (!name.trim() || !query.trim()) return alert("Please enter both fields.");
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (!data[0]) return alert("Location not found!");
-      const best = data[0];
-      const newPlace = {
-        name: name.trim(), address: best.display_name,
-        lat: +best.lat, lng: +best.lon,
-        visited: false, feedback: ""
-      };
-      push(placesRef, newPlace);
-      $('nameInput').value = ""; $('locationInput').value = "";
-    }
-
-    $('addBtn').addEventListener('click', () => addPlace($('nameInput').value, $('locationInput').value));
-    [$('nameInput'), $('locationInput')].forEach(el => el.addEventListener('keydown', e => e.key === 'Enter' && addPlace($('nameInput').value, $('locationInput').value)));
-
-    $('clearAllBtn').addEventListener('click', () => {
-      if (!confirm("Clear all?")) return;
-      onValue(placesRef, snapshot => {
-        snapshot.forEach(child => { remove(ref(db, "places/" + child.key)); });
-      }, { onlyOnce: true });
+    const left = document.createElement('div');
+    left.className = "space-y-0.5";
+    left.innerHTML = `<div class="font-semibold cursor-pointer underline-offset-4 hover:underline">${p.name}</div>
+                      <div class="text-xs text-gray-600 dark:text-gray-400">${p.address}</div>
+                      ${p.feedback ? `<div class="text-xs mt-1"><span class="font-medium">Feedback:</span> ${p.feedback}</div>` : ""}`;
+    left.querySelector("div.font-semibold").addEventListener("click", () => {
+      map.setView([p.lat, p.lng], 16);
+      markerById.get(id)?.openPopup();
     });
 
-    // ---- Listen for live updates ----
-    onValue(placesRef, snapshot => {
-      const data = snapshot.val() || {};
-      markerById.forEach(m => map.removeLayer(m)); markerById.clear();
-      renderList(data);
+    const right = document.createElement('div');
+    right.className = "flex items-center gap-2";
+
+    const visitBtn = document.createElement('button');
+    visitBtn.className = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
+    visitBtn.textContent = p.visited ? "Visited ✓" : "Mark Visited";
+    visitBtn.addEventListener('click', () => {
+      update(ref(db, "places/" + id), { visited: !p.visited });
     });
-  </script>
+
+    const fbBtn = document.createElement('button');
+    fbBtn.className = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
+    fbBtn.textContent = "Feedback";
+    fbBtn.addEventListener('click', () => {
+      const t = prompt("Feedback:", p.feedback || "");
+      if (t !== null) { update(ref(db, "places/" + id), { feedback: t.trim() }); }
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = "text-xs rounded-lg border px-3 py-1 text-red-600 dark:border-red-400";
+    delBtn.textContent = "Delete";
+    delBtn.addEventListener('click', () => {
+      if (!confirm(`Delete "${p.name}"?`)) return;
+      remove(ref(db, "places/" + id));
+    });
+
+    right.append(visitBtn, fbBtn, delBtn);
+    row.append(left, right);
+    list.appendChild(row);
+  });
+
+  fitBoundsIfAny();
+}
+
+// ---- Add place ----
+async function addPlace(name, query) {
+  if (!name.trim() || !query.trim()) return alert("Please enter both fields.");
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (!data[0]) return alert("Location not found!");
+  const best = data[0];
+  const newPlace = {
+    name: name.trim(), address: best.display_name,
+    lat: +best.lat, lng: +best.lon,
+    visited: false, feedback: ""
+  };
+  push(placesRef, newPlace);
+  $('nameInput').value = ""; $('locationInput').value = "";
+}
+
+$('addBtn').addEventListener('click', () => addPlace($('nameInput').value, $('locationInput').value));
+[$('nameInput'), $('locationInput')].forEach(el => el.addEventListener('keydown', e => e.key === 'Enter' && addPlace($('nameInput').value, $('locationInput').value)));
+
+$('clearAllBtn').addEventListener('click', () => {
+  if (!confirm("Clear all?")) return;
+  onValue(placesRef, snapshot => {
+    snapshot.forEach(child => { remove(ref(db, "places/" + child.key)); });
+  }, { onlyOnce: true });
+});
+
+// ---- Listen for live updates ----
+onValue(placesRef, snapshot => {
+  const data = snapshot.val() || {};
+  renderList(data);
+});
+</script>
+
 </body>
 </html>
