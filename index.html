@@ -83,16 +83,15 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // 🔥 Firebase Config Paste Kar Yahan
     const firebaseConfig = {
       apiKey: "AIzaSyCR3hj9MnH7s_8nv07j0nu6aCBLUOz2NXI",
-  authDomain: "mapp-468fa.firebaseapp.com",
-  databaseURL: "https://mapp-468fa-default-rtdb.firebaseio.com",
-  projectId: "mapp-468fa",
-  storageBucket: "mapp-468fa.firebasestorage.app",
-  messagingSenderId: "638138306228",
-  appId: "1:638138306228:web:21fba45052c59b605b91e1",
-  measurementId: "G-6K4W1C4C3G"
+      authDomain: "mapp-468fa.firebaseapp.com",
+      databaseURL: "https://mapp-468fa-default-rtdb.firebaseio.com",
+      projectId: "mapp-468fa",
+      storageBucket: "mapp-468fa.firebasestorage.app",
+      messagingSenderId: "638138306228",
+      appId: "1:638138306228:web:21fba45052c59b605b91e1",
+      measurementId: "G-6K4W1C4C3G"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -178,14 +177,14 @@
         right.className = "flex items-center gap-2";
 
         const visitBtn = document.createElement('button');
-       visitBtn.className = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
+        visitBtn.className = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
         visitBtn.textContent = p.visited ? "Visited ✓" : "Mark Visited";
         visitBtn.addEventListener('click', () => {
           update(ref(db, "places/" + id), { visited: !p.visited });
         });
 
         const fbBtn = document.createElement('button');
-       fbBtn.className    = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
+        fbBtn.className = "text-xs rounded-lg border px-3 py-1 dark:border-gray-600 dark:text-white";
         fbBtn.textContent = "Feedback";
         fbBtn.addEventListener('click', () => {
           const t = prompt("Feedback:", p.feedback || "");
@@ -193,7 +192,7 @@
         });
 
         const delBtn = document.createElement('button');
-        delBtn.className   = "text-xs rounded-lg border px-3 py-1 text-red-600 dark:border-red-400";
+        delBtn.className = "text-xs rounded-lg border px-3 py-1 text-red-600 dark:border-red-400";
         delBtn.textContent = "Delete";
         delBtn.addEventListener('click', () => {
           if (!confirm(`Delete "${p.name}"?`)) return;
@@ -235,10 +234,28 @@
       }, { onlyOnce: true });
     });
 
+    // ---- Special Green Location ----
+    const specialPlace = {
+      id: "special-1",
+      name: "The DNA Camp KHORE HAVELI",
+      address: "Harchandpur, Near Damdama Lake, Sohna, Gurugram, Haryana 122102",
+      lat: 28.3975,
+      lng: 77.0870,
+      visited: true, // hamesha green
+      feedback: ""
+    };
+    addMarkerForPlace(specialPlace);
+    markerById.get("special-1")?.bindPopup(`<b>${specialPlace.name}</b><br>${specialPlace.address}`);
+
     // ---- Listen for live updates ----
     onValue(placesRef, snapshot => {
       const data = snapshot.val() || {};
       markerById.forEach(m => map.removeLayer(m)); markerById.clear();
+
+      // Re-add special location after clearing
+      addMarkerForPlace(specialPlace);
+      markerById.get("special-1")?.bindPopup(`<b>${specialPlace.name}</b><br>${specialPlace.address}`);
+
       renderList(data);
     });
   </script>
